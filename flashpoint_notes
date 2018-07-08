@@ -1,0 +1,7 @@
+update_httpd_conf_main_dir:
+	mkdir -p logs
+	for line in conf/httpd.conf:
+		if line startswith "define srvroot":
+			replace line with "Define SRVROOT $(pwd)"
+	write it back
+w
