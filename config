@@ -1,0 +1,11 @@
+#!/bin/sh
+
+# This file has some configuration variables, edit this file before running ./compile.sh
+
+# the path to the Flashpoint installation - the root where all the .bat files are
+FLASHPOINT="/path/to/Flashpoint"
+
+# flags to pass to each invocation of `make`:
+# for example, the -jX flag specifies the number of threads to use while compiling
+# most systems these days have 4 threads, so this is a good default, right?
+MAKEFLAGS="-j4"
