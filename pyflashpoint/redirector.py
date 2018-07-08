@@ -4,15 +4,17 @@ import os
 import subprocess
 import ssl
 import hashlib
-import aiofiles
+#import aiofiles
 from urllib.parse import urlparse
 from textwrap import dedent
 
+""" This proxy script was originally written to archive web requests. It's repurposed into a redirector."""
 
-HTTP_PATH = "http"
+#HTTP_PATH = "http"
 CERTS_PATH = "certs"
 CA_PATH = "ca"
-HISTORY_FILE = "http/history.txt"
+#HISTORY_FILE = "http/history.txt"
+
 
 class MemoryReader:
     def __init__(self, data : bytes):
@@ -29,6 +31,7 @@ class MemoryReader:
         ret = self.data[:n]
         self.data = self.data[n:]
         return ret
+
 
 class HTTPProxyHandler:
     def __init__(self, reader : asyncio.StreamReader, writer : asyncio.StreamWriter):
@@ -54,6 +57,8 @@ class HTTPProxyHandler:
             self.url = f"https://{self.ssl_hostname}{self.url}"
 
         self.log(f"{self.method} {self.url} {self.version}")
+
+        """
         if self.url == 'http://oopsiewhoopsie.proxy/breakhttps.crt':
             async with aiofiles.open(CA_PATH + "/ca.crt", "rb") as f:
                 self.body = await f.read()
@@ -64,6 +69,7 @@ class HTTPProxyHandler:
 
             self.writer.close()
             return False
+        """
 
 
         # SSL proxy
@@ -85,7 +91,6 @@ class HTTPProxyHandler:
             self._ssl_obj = self._ssl_ctx.wrap_bio(self._ssl_in, self._ssl_out, server_side=True, server_hostname=self.ssl_hostname)
             self._ssl_buf = b''
             await self.ssl_handshake()
-            #self.log(f"await self.ssl_handshake()")
             return True
 
         # drop unsupported headers oopsy whoopsy
@@ -117,7 +122,6 @@ class HTTPProxyHandler:
             try:
                 n += 1
                 if op == 0:
-                    #self.log(f"handshake #{n}")
                     self._ssl_obj.do_handshake()
                 elif op == 1:
                     data = self._ssl_obj.read(8192)
@@ -131,13 +135,8 @@ class HTTPProxyHandler:
                         await self.writer.drain()
                 return
             except (ssl.SSLWantReadError, ssl.SSLWantWriteError) as e:
-                #self.log(f"{e.__class__.__name__} op {op} #{n}")
-                #self.log(f"pending = {self._ssl_out.pending}")
-
                 if self._ssl_out.pending:
                     self.writer.write(self._ssl_out.read())
-                    #await self.writer.drain()
-                    # more expensive to drain the buffer anyway
                 self._ssl_in.write(await self.reader.read(8192))
 
     async def ssl_handshake(self):
@@ -155,10 +154,8 @@ class HTTPProxyHandler:
         else:
             while a not in self._ssl_buf:
                 self._ssl_buf += await self.ssl_read()
-                #self.log(f"self._ssl_buf == {self._ssl_buf}, a == {a}")
             res = self._ssl_buf[:self._ssl_buf.index(a) + len(a)]
             self._ssl_buf = self._ssl_buf[self._ssl_buf.index(a) + len(a):]
-            #self.log(f"res == {res}, buf == {self._ssl_buf}")
             return res
 
     async def readexactly(self, n : int):
@@ -207,14 +204,14 @@ class HTTPProxyHandler:
 
     async def respond(self):
         url = urlparse(self.url)
-        req_line = self.url[len(url.scheme) + 3 + len(url.netloc):]
+        req_line = self.url[len(url.scheme) + 2] #3 + len(url.netloc):]
 
         payload = self.encode_payload(f"{self.method} {req_line} HTTP/1.1\r\n", self.headers, self.body)
 
         if not self.ssl:
-            clreader, clwriter = await asyncio.open_connection(url.hostname, url.port or 80)
+            clreader, clwriter = await asyncio.open_connection("127.0.0.1", 22500)
         else:
-            clreader, clwriter = await asyncio.open_connection(url.hostname, 443, ssl=True)
+            clreader, clwriter = await asyncio.open_connection("127.0.0.1", 22501, ssl=True)
         clwriter.write(payload)
 
         response_line, clreheaders, clrebody = await self.read_request(clreader)
@@ -237,11 +234,21 @@ class HTTPProxyHandler:
             clreheaders['Content-Length'] = len(clrebody)
 
         response = response_line + self.encode_payload("", clreheaders, clrebody)
-        asyncio.get_event_loop().create_task(self.archive_path(url, req_line, response))
+        #asyncio.get_event_loop().create_task(self.archive_path(url, req_line, response))
 
         await self.write(response)
         clwriter.close()
 
+    async def send_response(self, status="200 OK", addn_headers={}, body=b''):
+        status_line = "HTTP/1.1" + status + "\r\n"
+        headers = {'Server': 'redirector', 'Content-Length': len(body), 'Content-Type': 'text/html; charset=UTF-8'}
+        headers.update(addn_headers)
+        await self.write(self.encode_payload(status_line, headers, body))
+
+    def hash(self, s : str):
+        return hashlib.sha256(s.encode()).hexdigest()
+
+"""
     async def archive_path(self, url, req_line, payload):
         path = os.path.join(HTTP_PATH, self.hash(url.netloc + req_line) + ".req")
         dirs, file = os.path.split(path)
@@ -251,18 +258,11 @@ class HTTPProxyHandler:
             self.log(f"archived {url.netloc}{req_line} -> {path}")
         async with aiofiles.open(HISTORY_FILE, "a") as f:
             await f.write(f'{url.geturl()}\r\n')
+"""
 
 
-    async def send_response(self, status="200 OK", addn_headers={}, body=b''):
-        status_line = "HTTP/1.1" + status + "\r\n"
-        headers = {'Server': 'oopsiewhoopsie', 'Content-Length': len(body), 'Content-Type': 'text/html; charset=UTF-8'}
-        headers.update(addn_headers)
-        await self.write(self.encode_payload(status_line, headers, body))
 
-    def hash(self, s : str):
-        return hashlib.sha256(s.encode()).hexdigest()
-
-
+"""
 class HTTPProxyReplayHandler(HTTPProxyHandler):
     async def respond(self):
         url = urlparse(self.url)
@@ -270,7 +270,7 @@ class HTTPProxyReplayHandler(HTTPProxyHandler):
         path = os.path.join(HTTP_PATH, self.hash(url.netloc + req_line) + ".req")
         if not os.path.isfile(path):
             await self.send_response("404 Not Found", addn_headers={"Access-Control-Allow-Origin": "*"}, body=dedent(
-                """
+                " ""
                 <html>
                     <head><title>404 Not Archived</title></head>
                     <body>
@@ -278,7 +278,7 @@ class HTTPProxyReplayHandler(HTTPProxyHandler):
                         <p>Uwu We made a fucky wucky!! A wittle fucko boingo! The code monkeys at our headquarters are working VEWY HAWD to fix this!</p>
                     </body>
                 </html>
-                """).encode("utf-8")
+                " "").encode("utf-8")
             )
         else:
             async with aiofiles.open(path, 'rb') as f:
@@ -289,6 +289,7 @@ class HTTPProxyReplayHandler(HTTPProxyHandler):
                 headers['Access-Control-Allow-Origin'] = "*"
 
                 await self.write(self.encode_payload(line.decode(), headers, body))
+"""
 
 
 async def http_handler(reader, writer):
@@ -299,7 +300,7 @@ async def http_handler(reader, writer):
         except ConnectionAbortedError:
             return
 
-
+"""
 async def http_handler_replay(reader, writer):
     session = HTTPProxyReplayHandler(reader, writer)
     while True:
@@ -307,23 +308,20 @@ async def http_handler_replay(reader, writer):
             if not await session.handle(): break
         except ConnectionAbortedError:
             return
+"""
 
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
-    coro0 = asyncio.start_server(http_handler, '0.0.0.0', 8080, loop=loop)
-    #coro1 = asyncio.start_server(http_handler_replay, '0.0.0.0', 8081, loop=loop)
+    coro = asyncio.start_server(http_handler, '127.0.0.1', 8888, loop=loop)
 
-    server0 = loop.run_until_complete(coro0)
-    #server1 = loop.run_until_complete(coro1)
+    server = loop.run_until_complete(coro)
 
     try:
-        print("starting server")
+        print("starting redirection proxy")
         loop.run_forever()
     except KeyboardInterrupt:
         pass
-    server0.close()
-    #server1.close()
-    loop.run_until_complete(server0.wait_closed())
-    #loop.run_until_complete(server1.wait_closed())
+    server.close()
+    loop.run_until_complete(server.wait_closed())
     loop.close()
 
