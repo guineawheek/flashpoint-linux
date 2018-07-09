@@ -1,0 +1,25 @@
+DateAdded is unique for every entry
+LastPlayedDate is always the same
+there are 29 unique Id
+3001 ID - ID of game
+29 GameID
+18 LastPlayed
+3001 Title - game title
+391 Series - game series
+558 Source - game source
+132 Publisher - game publisher
+45 Genres - includes Adult
+
+ScummVM*, SideA, SideB, are useless.
+
+SortTitle seems to be alternate titles for a few select series
+Status is some variant of Playable if it's a Game, else it's None
+Type is either Game or AdditionalApplication
+UseDoxBox,UseEmulator,UseScummVM,Version,VideoPath,WikipediaURL are all False or None.
+WaitForExit is either true or False
+
+
+
+----
+USELESS: (strip from everything):
+'AutoRunAfter', 'Broken', 'CommunityStarRating', 'CommunityStarRatingTotalVotes', 'Completed', 'ConfigurationCommandLine', 'ConfigurationPath', DosBoxConfigurationPath', 'Emulator', 'Favorite', 'LastPlayedDate', 'ManualPath', 'MusicPath', 'Platform', 'Portable', 'Priority', 'Rating', 'Region', ScummVMAspectCorrection', 'ScummVMFullScreen', 'ScummVMGameDataFolderPath', 'ScummVMGameType', 'SideA', 'SideB', 'StarRating', 'StarRatingFloat', 'UseDosBox', 'UseEmulator', 'UseScummVM', 'Version', 'VideoPath', 'WikipediaURL'
