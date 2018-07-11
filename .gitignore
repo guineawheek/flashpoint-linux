@@ -3,4 +3,5 @@ dl/
 src
 *__pycache__*
 *.idea*
+config
 

@@ -30,7 +30,7 @@ def index():
 @app.route('/game/<game_id>')
 @game_route
 def game_info(game):
-    return render_template('game_info.html', game=game, pformat=pformat, environ=dict(os.environ))
+    return render_template('game_info.html', game=game, pformat=pformat)
 
 
 @app.route('/game/<game_id>/launch')

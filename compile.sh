@@ -3,6 +3,30 @@ set -eux
 
 BASE=$(cd $(dirname "$0") && pwd)
 cd ${BASE}
+
+if [ ! -f ./config ]; then
+cat << "EOF" > config
+#!/bin/sh
+
+# This file has some configuration variables, edit this file before running ./compile.sh
+
+# the path to the Flashpoint installation - the root where all the .bat files are
+FLASHPOINT="/path/to/Flashpoint"
+
+# the mode that Flashpoint will run in; accepts "Arcade" or "Theatre"
+FLASHPOINT_MODE="Arcade"
+
+# flags to pass to each invocation of `make`:
+# for example, the -jX flag specifies the number of threads to use while compiling
+# most systems these days have 4 threads, so this is a good default, right?
+MAKEFLAGS="-j4"
+
+EOF
+echo "Configuration not found, creating new config"
+echo "Please update $(realpath ./config) with a path to a Flashpoint install"
+exit 1
+fi
+
 source ./config
 FP_BASE="${FLASHPOINT}/Arcade/Games/Flash"
 APACHE2_VERSION="2.4.33"
@@ -40,15 +64,14 @@ make install
 
 # configure the apache installation
 cd "${BASE}/apache"
-# don't need default htdocs, delete and replace with flashpoint's
-rm htdocs/index.html
-rmdir htdocs
+# don't need default htdocs, move and replace with flashpoint's
+mv htdocs htdocs-default
 ln -s "${FP_BASE}/htdocs" htdocs
 
 # copy over a bunch of configs that flashpoint apparently uses
 cp "${FP_BASE}/conf/httpd.conf" conf/httpd.conf
 cp "${FP_BASE}/conf/extra/httpd-ahssl.conf" conf/extra/httpd-ahssl.conf
-rm -rv conf/ssl || true
+mv conf/ssl conf/ssl-default
 cp -r "${FP_BASE}/conf/ssl" conf
 cp "${FP_BASE}/php.ini" conf/php.ini
 
