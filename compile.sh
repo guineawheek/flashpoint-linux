@@ -1,5 +1,5 @@
 #!/bin/sh
-set -eux
+set -eu
 
 BASE=$(cd $(dirname "$0") && pwd)
 cd ${BASE}
@@ -23,9 +23,11 @@ MAKEFLAGS="-j4"
 
 EOF
 echo "Configuration not found, creating new config"
-echo "Please update $(realpath ./config) with a path to a Flashpoint install"
+echo "Please edit $(realpath ./config) with a path to a Flashpoint install"
 exit 1
 fi
+
+set -x
 
 source ./config
 FP_BASE="${FLASHPOINT}/Arcade/Games/Flash"
