@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link rel="stylesheet" href="/static/bootstrap.min.css">
+    <style type="text/css">
+        img { object-fit: contain; max-width:100% }
+
+        .thicc-wrap {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+        }
+
+    </style>
+    <title>Flashpoint Flask</title>
+</head>
+<body>
+
+    <h1>i really hate webdev</h1>
+
+    <div class="row mw-100 border-top">
+
+        <div class="container col-lg-9">
+
+            <div class="thicc-wrap">
+                {% for game in games %}
+                <div class="card text-center mt-4 mx-2 game-card" style='width: 128px;' game-id="{{ game.ID|e }}">
+                    <img class="card_img_top img_fluid" src="/game/{{ game.ID|e }}/boxart" height="128px">
+                    <div class="card_body">
+                        <p class="card_title">{{ game.Title |e }}</p>
+                    </div>
+                    {% if game.proc and game.proc.poll() is none %}
+                    {% endif %}
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="container col border-left">
+            <div class="sticky-top">
+                <div id="game-info">
+                    <h5 id="game-title"></h5>
+                    <ul id="game-meta" class="list-unstyled">
+
+                    </ul>
+
+                </div>
+
+                <div id="game-screenshot-block" class="d-none">
+                    <p class="font-weight-bold">Screenshot:</p>
+                    <img class="img_fluid" id="game-screenshot-img">
+                </div>
+
+                <div id="game-launch-btn" class="d-none btn btn-primary btn-block mt-2">Launch game</div>
+            </div>
+        </div>
+    </div>
+    <script src="/static/jquery-3.3.1.min.js"></script>
+    <!--
+    <script src="/static/popper.min.js"></script>
+    <script src="/static/bootstrap.min.js"></script>
+    -->
+    <script src="/static/index.js"></script>
+</body>
+</html>
