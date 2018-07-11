@@ -204,7 +204,7 @@ class HTTPProxyHandler:
 
     async def respond(self):
         url = urlparse(self.url)
-        req_line = self.url[len(url.scheme) +  + len(url.netloc):]
+        req_line = self.url[len(url.scheme) + 3 + len(url.netloc):]
 
         payload = self.encode_payload(f"{self.method} {req_line} HTTP/1.1\r\n", self.headers, self.body)
 
@@ -217,8 +217,8 @@ class HTTPProxyHandler:
         response_line, clreheaders, clrebody = await self.read_request(clreader)
         response_version, response_code, response_msg = response_line.decode().split(" ", 2)
 
-        self.log(f"request:  {self.method} {req_line} HTTP/1.1")
-        self.log(f"response: {response_version} {response_code} {response_msg} {clreheaders}")
+        self.log(f"request:  {self.method} {req_line} HTTP/1.1")# {self.headers}")
+        self.log(f"response: {response_version} {response_code} {response_msg}")# {clreheaders}")
 
         if clreheaders.get("Transfer-Encoding", "identity").lower() == "chunked":
             self.log(f"loading Transfer-Encoding: chunked")
