@@ -2,6 +2,7 @@
 set -eux
 
 source ./config
+trap 'trap - SIGTERM && kill 0' SIGINT SIGTERM EXIT
 # launch apache
 apache/bin/httpd -DFOREGROUND -e info &
 

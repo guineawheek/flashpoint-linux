@@ -73,7 +73,7 @@ ln -s "${FP_BASE}/htdocs" htdocs
 # copy over a bunch of configs that flashpoint apparently uses
 cp "${FP_BASE}/conf/httpd.conf" conf/httpd.conf
 cp "${FP_BASE}/conf/extra/httpd-ahssl.conf" conf/extra/httpd-ahssl.conf
-mv conf/ssl conf/ssl-default
+#mv conf/ssl conf/ssl-default
 cp -r "${FP_BASE}/conf/ssl" conf
 cp "${FP_BASE}/php.ini" conf/php.ini
 
@@ -94,6 +94,6 @@ sed -i 's|mod_xml2enc.so\r|mod_xml2enc.so\r\nLoadModule unixd_module modules/mod
 sed -i 's|PHPIniDir|#PHPIniDir|' conf/httpd.conf
 # make apache write logs to a useful place
 sed -i 's|ErrorLog NUL|ErrorLog "${SRVROOT}/logs/error.log"|' conf/httpd.conf
-echo -ne "\r\nSetEnv PYTHONIOENCODING utf-8\r\n" >> conf/httpd.conf
+#echo -ne "\r\nSetEnv PYTHONIOENCODING utf-8\r\n" >> conf/httpd.conf
 # reeeeeeeee
 #sed -i 's|extension_dir = "ext"|extension_dir = "'"${BASE}/lib/php/ext"'"|' conf/php.ini
