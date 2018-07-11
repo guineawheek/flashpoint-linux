@@ -6,7 +6,6 @@ trap 'trap - SIGTERM && kill 0' SIGINT SIGTERM EXIT
 # launch apache
 apache/bin/httpd -DFOREGROUND -e info &
 
-cd pyflashpoint
 # launch the redirector
 python3 -m pyflashpoint.redirector &
 
