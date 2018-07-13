@@ -27,7 +27,7 @@
             <div class="thicc-wrap">
                 {% for game in games %}
                 <div class="card text-center mt-4 mx-2 game-card" style='width: 128px;' game-id="{{ game.ID|e }}">
-                    <img class="card_img_top img_fluid" src="/game/{{ game.ID|e }}/boxart" height="128px">
+                    <img class="card_img_top img_fluid lazyload" data-src="/game/{{ game.ID|e }}/boxart" height="128px">
                     <div class="card_body">
                         <p class="card_title">{{ game.Title |e }}</p>
                     </div>
@@ -58,6 +58,7 @@
         </div>
     </div>
     <script src="/static/jquery-3.3.1.min.js"></script>
+    <script src="/static/lazyload.min.js"></script>
     <!--
     <script src="/static/popper.min.js"></script>
     <script src="/static/bootstrap.min.js"></script>

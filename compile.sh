@@ -92,8 +92,14 @@ sed -i 's|mod_xml2enc.so\r|mod_xml2enc.so\r\nLoadModule unixd_module modules/mod
 #sed -i 's|PHPIniDir ./|PHPIniDir ${SRVROOT}/conf|' conf/httpd.conf
 # forget the shipped php ini i can't get sqlite to work with it, comment it out
 sed -i 's|PHPIniDir|#PHPIniDir|' conf/httpd.conf
+
 # make apache write logs to a useful place
 sed -i 's|ErrorLog NUL|ErrorLog "${SRVROOT}/logs/error.log"|' conf/httpd.conf
 #echo -ne "\r\nSetEnv PYTHONIOENCODING utf-8\r\n" >> conf/httpd.conf
 # reeeeeeeee
 #sed -i 's|extension_dir = "ext"|extension_dir = "'"${BASE}/lib/php/ext"'"|' conf/php.ini
+
+
+# setup wine; `winetricks vista` is required for palemoon to run
+WINEPREFIX="${BASE}/wine" wineboot -u
+WINEPREFIX="${BASE}/wine" winetricks vista

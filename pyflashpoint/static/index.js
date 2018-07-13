@@ -1,3 +1,4 @@
+lazyload();
 var selected_game = null;
 
 function uiSelectGame(game) {

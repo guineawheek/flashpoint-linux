@@ -5,7 +5,7 @@ import subprocess
 import ssl
 import hashlib
 #import aiofiles
-from urllib.parse import urlparse
+from urllib.parse import urlparse, urlunparse
 from textwrap import dedent
 
 """ This proxy script was originally written to archive web requests. It's repurposed into a redirector."""
@@ -202,9 +202,43 @@ class HTTPProxyHandler:
             body = await reader.readexactly(content_length)
         return status_line, headers, body
 
+    def resolve_path(self, path: list, cwd=None):
+        if not cwd:
+            cwd = ['.']
+        fn = path.pop(0)
+        for ent in os.listdir("/".join(cwd)):
+            if ent.lower() == fn.lower():
+                fn = ent
+                break
+
+        new_path = os.path.join("/".join(cwd), fn)
+        # basically if there's anything left on path and
+        if len(path):
+            if os.path.isdir(new_path):
+                cwd.append(fn)
+                return self.resolve_path(path, cwd)
+            return None
+        else:
+            if os.path.exists(new_path):
+                return new_path
+            return None
+
+
     async def respond(self):
         url = urlparse(self.url)
-        req_line = self.url[len(url.scheme) + 3 + len(url.netloc):]
+        # the local path in the htaccess folder
+        # we're cheating, but we may have to do this in order to adjust for case insensitivity
+        htdocs = "apache/htdocs/"
+        local_path = htdocs + url.netloc + url.path
+        new_path = None
+        if not os.path.exists(local_path):
+            new_path = self.resolve_path(local_path.split("/"))
+
+        if new_path is None:
+            req_line = self.url[len(url.scheme) + 3 + len(url.netloc):]
+        else:
+            # the 2 is because resolve_path prepends "./" to paths
+            req_line = new_path[2 + len(htdocs) + len(url.netloc):]
 
         payload = self.encode_payload(f"{self.method} {req_line} HTTP/1.1\r\n", self.headers, self.body)
 
